@@ -1,0 +1,28 @@
+.gitignore
+  s_b805bd07fcf178::t_9cb3b4884591db 1-6
+README.md
+  h_e4c387b48ae58e 86-87,202-203
+CHANGELOG.md
+  s_b805bd07fcf178::t_17ed03e48b5c65 10-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "dba59c9f9deeb4904d28ca0acd1cf799c1b7b463",
+  "prompts": {},
+  "humans": {
+    "h_e4c387b48ae58e": {
+      "author": "Jackson Pires <jackson.pires@gmail.com>"
+    }
+  },
+  "sessions": {
+    "s_b805bd07fcf178": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9f550e51-1526-43b3-b359-c4e25d32b44d",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}
