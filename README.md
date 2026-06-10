@@ -4,6 +4,8 @@ Rails scaffold generator that outputs **Phlex views built with [ruby_ui](https:/
 
 Drop-in alternative to `rails g scaffold` — generates model, migration, controller, routes, tests, and Phlex view classes wired to ruby_ui components.
 
+![RubyUI Scaffold](/docs/ruby_ui_scaffold.gif)
+
 ## Requirements
 
 - Rails 7.1+
