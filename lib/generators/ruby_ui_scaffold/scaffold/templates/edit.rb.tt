@@ -1,0 +1,34 @@
+# frozen_string_literal: true
+
+class Views::<%= controller_class_name %>::Edit < Views::Base
+<% if options[:literal] -%>
+  prop :<%= singular_table_name %>, <%= class_name %>
+<% else -%>
+  def initialize(<%= singular_table_name %>:)
+    @<%= singular_table_name %> = <%= singular_table_name %>
+  end
+<% end -%>
+
+  def view_template
+<% if options[:phlex_layout] -%>
+    render(<%= options[:phlex_layout] %>) do
+<% end -%>
+    # Outer scroll container — same pattern as the index. Without it,
+    # absolute-positioned popovers from Select/Combobox get clipped by
+    # ancestors that set `overflow: hidden`.
+    div(class: "h-dvh w-full overflow-y-auto") do
+      div(class: "mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8 space-y-6") do
+        h1(class: "text-2xl font-bold") { "Edit <%= human_name %>" }
+
+        render Views::<%= controller_class_name %>::Form.new(
+          <%= singular_table_name %>: @<%= singular_table_name %>,
+          url: <%= singular_route_name %>_path(@<%= singular_table_name %>),
+          method: "patch"
+        )
+      end
+    end
+<% if options[:phlex_layout] -%>
+    end
+<% end -%>
+  end
+end

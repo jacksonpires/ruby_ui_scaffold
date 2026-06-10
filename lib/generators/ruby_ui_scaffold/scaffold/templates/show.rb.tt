@@ -1,0 +1,55 @@
+# frozen_string_literal: true
+
+class Views::<%= controller_class_name %>::Show < Views::Base
+<% if options[:literal] -%>
+  prop :<%= singular_table_name %>, <%= class_name %>
+<% else -%>
+  def initialize(<%= singular_table_name %>:)
+    @<%= singular_table_name %> = <%= singular_table_name %>
+  end
+<% end -%>
+
+  def view_template
+<% if options[:phlex_layout] -%>
+    render(<%= options[:phlex_layout] %>) do
+<% end -%>
+    # Outer scroll container — same pattern as the index. Without it,
+    # absolute-positioned popovers from Select/Combobox get clipped by
+    # ancestors that set `overflow: hidden` (e.g. dashboards with
+    # `body { overflow: hidden }`).
+    div(class: "h-dvh w-full overflow-y-auto") do
+      div(class: "mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-8 space-y-6") do
+      div(class: "flex justify-between items-center") do
+        h1(class: "text-2xl font-bold") { "<%= human_name %> ##{@<%= singular_table_name %>.id}" }
+        div(class: "flex gap-2") do
+          Link(href: edit_<%= singular_route_name %>_path(@<%= singular_table_name %>), variant: "outline", class: "gap-2") do
+            lucide_icon("pencil", class: "size-4")
+            span { "Edit" }
+          end
+          Link(href: <%= plural_route_name %>_path, variant: "ghost") { "Back" }
+        end
+      end
+
+      Card(class: "p-6 space-y-3 w-full max-w-prose mx-auto") do
+<% attributes.reject { |a| a.respond_to?(:password_digest?) && a.password_digest? }.each do |attribute| -%>
+        div do
+          Text(weight: "medium") { "<%= attribute.human_name %>:" }
+<% if attribute.type == :boolean -%>
+          Badge(variant: @<%= singular_table_name %>.<%= attribute.column_name %>? ? "success" : "outline") do
+            @<%= singular_table_name %>.<%= attribute.column_name %>? ? "Yes" : "No"
+          end
+<% elsif reference_associations.include?(attribute.name.to_sym) -%>
+          Text { (@<%= singular_table_name %>.<%= attribute.name %>&.try(:name) || @<%= singular_table_name %>.<%= attribute.name %>&.try(:title) || @<%= singular_table_name %>.<%= attribute.column_name %>.to_s).to_s }
+<% else -%>
+          Text { @<%= singular_table_name %>.<%= attribute.column_name %>.to_s }
+<% end -%>
+        end
+<% end -%>
+      end
+    end
+    end
+<% if options[:phlex_layout] -%>
+    end
+<% end -%>
+  end
+end

@@ -1,0 +1,110 @@
+<% module_namespacing do -%>
+class <%= controller_class_name %>Controller < ApplicationController
+<% if options[:phlex_layout] -%>
+  layout false
+
+<% end -%>
+  SORTABLE_COLUMNS = %w[<%= sortable_columns.join(" ") %>].freeze
+  DEFAULT_PER_PAGE = 10
+  MAX_PER_PAGE = 100
+
+  before_action :set_<%= singular_table_name %>, only: %i[ show edit update destroy ]
+
+  # GET <%= route_url %>
+  def index
+    @per_page = clamp_per_page(params[:per_page])
+    @page = [ params[:page].to_i, 1 ].max
+    @search = params[:search].to_s
+    @sort = params[:sort] if SORTABLE_COLUMNS.include?(params[:sort])
+    @direction = %w[ asc desc ].include?(params[:direction]) ? params[:direction] : "asc"
+
+    scope = <%= orm_class.all(class_name) %>
+<% if reference_associations.any? -%>
+    scope = scope.includes(<%= reference_associations.map { |a| ":#{a}" }.join(", ") %>)
+<% end -%>
+<% if searchable_columns.any? -%>
+    if @search.present?
+      pattern = "%#{@search.downcase}%"
+      clauses = %w[ <%= searchable_columns.join(" ") %> ].map { |c| "LOWER(#{c}) LIKE :q" }
+      scope = scope.where(clauses.join(" OR "), q: pattern)
+    end
+<% end -%>
+    scope = scope.order(@sort => @direction) if @sort
+
+    @total_count = scope.count
+    @<%= plural_table_name %> = scope.limit(@per_page).offset(@per_page * (@page - 1))
+
+    render ::Views::<%= controller_class_name %>::Index.new(
+      <%= plural_table_name %>: @<%= plural_table_name %>,
+      page: @page,
+      per_page: @per_page,
+      total_count: @total_count,
+      search: @search,
+      sort: @sort,
+      direction: @direction
+    )
+  end
+
+  # GET <%= route_url %>/1
+  def show
+    render ::Views::<%= controller_class_name %>::Show.new(<%= singular_table_name %>: @<%= singular_table_name %>)
+  end
+
+  # GET <%= route_url %>/new
+  def new
+    @<%= singular_table_name %> = <%= orm_class.build(class_name) %>
+    render ::Views::<%= controller_class_name %>::New.new(<%= singular_table_name %>: @<%= singular_table_name %>)
+  end
+
+  # GET <%= route_url %>/1/edit
+  def edit
+    render ::Views::<%= controller_class_name %>::Edit.new(<%= singular_table_name %>: @<%= singular_table_name %>)
+  end
+
+  # POST <%= route_url %>
+  def create
+    @<%= singular_table_name %> = <%= orm_class.build(class_name, "#{singular_table_name}_params") %>
+
+    if @<%= orm_instance.save %>
+      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully created.") %>
+    else
+      render ::Views::<%= controller_class_name %>::New.new(<%= singular_table_name %>: @<%= singular_table_name %>), status: <%= ActionDispatch::Constants::UNPROCESSABLE_CONTENT.inspect %>
+    end
+  end
+
+  # PATCH/PUT <%= route_url %>/1
+  def update
+    if @<%= orm_instance.update("#{singular_table_name}_params") %>
+      redirect_to <%= redirect_resource_name %>, notice: <%= %("#{human_name} was successfully updated.") %>, status: :see_other
+    else
+      render ::Views::<%= controller_class_name %>::Edit.new(<%= singular_table_name %>: @<%= singular_table_name %>), status: <%= ActionDispatch::Constants::UNPROCESSABLE_CONTENT.inspect %>
+    end
+  end
+
+  # DELETE <%= route_url %>/1
+  def destroy
+    @<%= orm_instance.destroy %>
+    redirect_to <%= index_helper %>_path, notice: <%= %("#{human_name} was successfully destroyed.") %>, status: :see_other
+  end
+
+  private
+    # Use callbacks to share common setup or constraints between actions.
+    def set_<%= singular_table_name %>
+      @<%= singular_table_name %> = <%= orm_class.find(class_name, "params.expect(:id)") %>
+    end
+
+    def clamp_per_page(value)
+      n = value.to_i
+      n.between?(1, MAX_PER_PAGE) ? n : DEFAULT_PER_PAGE
+    end
+
+    # Only allow a list of trusted parameters through.
+    def <%= "#{singular_table_name}_params" %>
+      <%- if attributes_names.empty? -%>
+      params.fetch(:<%= singular_table_name %>, {})
+      <%- else -%>
+      params.expect(<%= singular_table_name %>: [ <%= permitted_params %> ])
+      <%- end -%>
+    end
+end
+<% end -%>

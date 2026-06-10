@@ -1,0 +1,108 @@
+# frozen_string_literal: true
+
+class Views::<%= controller_class_name %>::Index < Views::Base
+<% if options[:literal] -%>
+  prop :<%= plural_table_name %>, _Any
+<% else -%>
+  def initialize(<%= plural_table_name %>:)
+    @<%= plural_table_name %> = <%= plural_table_name %>
+  end
+<% end -%>
+
+  def view_template
+<% if options[:phlex_layout] -%>
+    render(<%= options[:phlex_layout] %>) do
+<% end -%>
+    # Outer scroll container — when the host layout uses `body { overflow: hidden }`
+    # (e.g. dashboards with fixed sidebar), this ensures the page content scrolls
+    # vertically. In apps with natural body scroll, the inner content still scrolls
+    # within this container.
+    div(class: "h-dvh w-full overflow-y-auto") do
+      div(class: "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6") do
+        div(class: "flex justify-between items-center") do
+          h1(class: "text-2xl font-bold") { "<%= human_name.pluralize %>" }
+          Link(href: new_<%= singular_route_name %>_path, variant: "primary", class: "gap-2") do
+            lucide_icon("plus", class: "size-4")
+            span { "New <%= human_name %>" }
+          end
+        end
+
+        Table(class: "table-fixed") do
+          TableHeader do
+            TableRow do
+<% attributes.reject { |a| a.respond_to?(:password_digest?) && a.password_digest? }.each do |attribute| -%>
+              TableHead { "<%= attribute.human_name %>" }
+<% end -%>
+              TableHead(class: "text-right whitespace-nowrap w-16") { "Actions" }
+            end
+          end
+
+          TableBody do
+            @<%= plural_table_name %>.each do |<%= singular_table_name %>|
+              TableRow do
+<% attributes.reject { |a| a.respond_to?(:password_digest?) && a.password_digest? }.each do |attribute| -%>
+<% if attribute.type == :boolean -%>
+                TableCell do
+                  Badge(variant: <%= singular_table_name %>.<%= attribute.column_name %>? ? "success" : "outline") do
+                    <%= singular_table_name %>.<%= attribute.column_name %>? ? "Yes" : "No"
+                  end
+                end
+<% elsif reference_associations.include?(attribute.name.to_sym) -%>
+                TableCell do
+                  <%= singular_table_name %>_<%= attribute.name %>_label = (<%= singular_table_name %>.<%= attribute.name %>&.try(:name) || <%= singular_table_name %>.<%= attribute.name %>&.try(:title) || <%= singular_table_name %>.<%= attribute.column_name %>.to_s).to_s
+                  div(class: "truncate", title: <%= singular_table_name %>_<%= attribute.name %>_label) { <%= singular_table_name %>_<%= attribute.name %>_label }
+                end
+<% else -%>
+                TableCell do
+                  <%= singular_table_name %>_<%= attribute.column_name %>_value = <%= singular_table_name %>.<%= attribute.column_name %>.to_s
+                  div(class: "truncate", title: <%= singular_table_name %>_<%= attribute.column_name %>_value) { <%= singular_table_name %>_<%= attribute.column_name %>_value }
+                end
+<% end -%>
+<% end -%>
+                TableCell(class: "text-right whitespace-nowrap w-16") do
+                  DropdownMenu(options: { strategy: "fixed" }) do
+                    DropdownMenuTrigger do
+                      lucide_icon("more-horizontal", class: "size-5 cursor-pointer text-muted-foreground hover:text-foreground")
+                    end
+
+                    DropdownMenuContent(class: "w-fit") do
+                      DropdownMenuItem(href: <%= singular_route_name %>_path(<%= singular_table_name %>)) { "Show" }
+                      DropdownMenuItem(href: edit_<%= singular_route_name %>_path(<%= singular_table_name %>)) { "Edit" }
+                      DropdownMenuSeparator()
+                      AlertDialog(class: "w-full") do
+                        AlertDialogTrigger(class: "w-full") do
+                          DropdownMenuItem(href: nil, class: "w-full justify-start text-destructive hover:text-destructive focus:text-destructive") do
+                            "Delete"
+                          end
+                        end
+
+                        AlertDialogContent do
+                          AlertDialogHeader do
+                            AlertDialogTitle { "Delete <%= human_name %>?" }
+                            AlertDialogDescription do
+                              "This action cannot be undone. The <%= human_name.downcase %> will be permanently removed."
+                            end
+                          end
+
+                          AlertDialogFooter do
+                            AlertDialogCancel { "Cancel" }
+                            form_with(url: <%= singular_route_name %>_path(<%= singular_table_name %>), method: :delete) do
+                              Button(type: "submit", variant: "destructive") { "Delete" }
+                            end
+                          end
+                        end
+                      end
+                    end
+                  end
+                end
+              end
+            end
+          end
+        end
+      end
+    end
+<% if options[:phlex_layout] -%>
+    end
+<% end -%>
+  end
+end

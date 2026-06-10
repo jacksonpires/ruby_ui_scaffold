@@ -1,0 +1,50 @@
+# frozen_string_literal: true
+
+class Views::<%= controller_class_name %>::Form < Views::Base
+<% if reference_associations.any? -%>
+  # Switch to ruby_ui Combobox (with search) when an associated table has more
+  # than this many rows. Below the threshold, a plain Select is rendered.
+  # Tune per-form by editing this constant.
+  COMBOBOX_THRESHOLD = 100
+
+<% end -%>
+<% if options[:literal] -%>
+  prop :<%= singular_table_name %>, <%= class_name %>
+  prop :url, String
+  prop :method, String
+<% else -%>
+  def initialize(<%= singular_table_name %>:, url:, method:)
+    @<%= singular_table_name %> = <%= singular_table_name %>
+    @url = url
+    @method = method
+  end
+<% end -%>
+
+  def view_template
+    form_with(model: @<%= singular_table_name %>, url: @url, method: @method, class: "flex flex-col gap-4 w-full max-w-prose mx-auto") do |form|
+<% attributes.each do |attribute| -%>
+      FormField do
+        FormFieldLabel(for: "<%= "#{singular_table_name}_#{attribute.column_name}" %>") do
+          "<%= attribute.human_name %>"
+        end
+
+        <%= ruby_ui_input_for(attribute, indent: 8) %>
+
+        FormFieldError do
+          @<%= singular_table_name %>.errors.messages_for(:<%= attribute.column_name %>).to_sentence
+        end
+      end
+
+<% end -%>
+      div(class: "flex items-center gap-2") do
+        Button(type: "submit", class: "gap-2") do
+          lucide_icon(@<%= singular_table_name %>.new_record? ? "plus" : "check", class: "size-4")
+          span { @<%= singular_table_name %>.new_record? ? "Create <%= human_name %>" : "Update <%= human_name %>" }
+        end
+        # Back to wherever the user came from; falls back to the index when
+        # there's no referer (direct navigation, stripped Referer header, ...).
+        Link(href: request&.referer || <%= plural_route_name %>_path, variant: "ghost") { "Back" }
+      end
+    end
+  end
+end
