@@ -31,6 +31,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `gem "ruby_ui", "~> 1.6", require: false` instead of tracking the GitHub
   `main` branch. Verified end-to-end against ruby_ui 1.6.0. Existing GitHub
   entries in a Gemfile are still detected and left alone.
+- **Minimum Ruby raised to 3.2.** Phlex 2.x (required by `phlex-rails >= 2.0`)
+  already needs Ruby 3.2+, so the previous `>= 3.1` couldn't be installed on 3.1.
 
 ### Added
 
@@ -38,130 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   workflow that runs the test suite on Ruby 3.2, 3.3, 3.4 and 4.0 against
   Rails 7.1, 7.2, 8.0 and 8.1 (per-version Gemfiles under `gemfiles/`).
 
-### Changed
-
-- **Minimum Ruby raised to 3.2.** Phlex 2.x (required by `phlex-rails >= 2.0`)
-  already needs Ruby 3.2+, so the previous `>= 3.1` couldn't be installed on 3.1.
-
 ## [0.1.0] - 2026-06-09
-
-### Added
-
-- **Lucide icons on the action buttons.** The index "New" link gets a `plus`
-  icon, the show "Edit" link a `pencil`, and the form's submit a `plus`
-  (create) / `check` (update). Each button gets `gap-2` for spacing and the
-  icon `size-4`, since ruby_ui's Button/Link don't auto-size or space SVGs.
-  Reuses the already-registered `lucide_icon` helper — no new dependency.
-- **"Back" link in the new/edit form.** The shared form now renders a `Back`
-  link next to the submit button, pointing at `request.referer` and falling
-  back to the index path when there's no referer. Requires `request` in the
-  views, so the post-scaffold injection now also adds
-  `include Phlex::Rails::Helpers::Request` to `Components::Base` (idempotent).
-- **`--skip-model` flag** for the scaffold generator — skips model/migration/
-  model-test/fixtures generation (the whole `:orm` hook) and only
-  (re)generates the controller, views, and route. Intended for re-runs
-  against an existing model: refresh the views after a template change, or
-  add `--datatable`, without Rails creating a duplicate migration or
-  clobbering the model. Implies `--force` (overwrites the regenerated files
-  and bypasses the class-collision check, which a re-run would otherwise
-  abort on). The model is never touched — put custom code there; the
-  controller/views are treated as regenerable.
-- **Installer generator** — `bin/rails g ruby_ui_scaffold:install` automates
-  the first-time setup on a fresh Rails app. Runs `phlex:install`,
-  `ruby_ui:install`, `ruby_ui:component:all`, and backfills the 12
-  components the scaffold uses but that `:component:all` currently misses
-  (`link`, `table`, `alert_dialog`, `badge`, `select`, `combobox`,
-  `checkbox`, `textarea`, `data_table`, `native_select`, `calendar`,
-  `date_picker`). Every step is idempotent — re-running only touches what's
-  missing.
-- **Automatic `ruby_ui` gem bootstrap** — when the `ruby_ui` gem isn't
-  loadable, the installer now adds
-  `gem "ruby_ui", github: "ruby-ui/ruby_ui", branch: "main", require: false`
-  to the Gemfile and runs `bundle install`, instead of aborting with manual
-  instructions. Idempotent: skips the Gemfile edit when an entry already
-  exists, and does nothing once the gem loads. Works even when the install
-  runs as a subprocess of the scaffold generator — the later sub-generator
-  steps spawn fresh subprocesses that boot with the updated bundle.
-  `phlex-rails` (a declared runtime dependency) keeps the abort-with-
-  instructions behavior. No-op when no Gemfile is present.
-- **Auto-install on scaffold** — `bin/rails g ruby_ui_scaffold ...` now
-  auto-runs the idempotent `ruby_ui_scaffold:install` when phlex/ruby_ui
-  aren't detected, so generated views work out of the box. Falls back to a
-  non-blocking warning when there's no app `bin/rails` to drive it, or when
-  opted out with the new `--skip-install` flag.
-- **`--literal` flag** for the scaffold generator — emits Phlex views using
-  [`literal`](https://literal.fun)'s `prop` macros instead of explicit
-  `def initialize` + `@ivar` assignments. Less boilerplate per view;
-  runtime type-checking included. On first use, also injects
-  `extend Literal::Properties` into `app/components/base.rb` (idempotent).
-  Combines with `--datatable` — the DataTable index gets the full typed
-  prop set (`_Any` collection, `Integer` pagination, `_Nilable(String)`
-  search/sort/direction). Controllers don't change: `render Views::*.new(...)`
-  still works since Literal generates a compatible `initialize`. `literal
-  (>= 1.0)` is now a runtime dependency.
-- `phlex-rails (>= 2.0)` is now a declared runtime dependency, so Bundler
-  pulls it in automatically. `lib/ruby_ui_scaffold.rb` requires it eagerly
-  to ensure phlex-rails' railtie fires under `Bundler.require`, which is
-  what makes `bin/rails g phlex:install` discoverable.
-
-### Changed
-
-- **Components are now installed on demand instead of all upfront.** The
-  installer no longer runs `ruby_ui:component:all` + a `MISSING_COMPONENTS`
-  backfill; it installs only the `ComponentResolver::BASE` shell every
-  scaffold uses (`table`, `link`, `button`, `card`, `typography`,
-  `dropdown_menu`, `alert_dialog`, `form`, `input`). Each `rails g
-  ruby_ui_scaffold` then installs just the column/flag-specific components
-  that scaffold references — `badge`/`checkbox` (boolean), `textarea`
-  (text), `combobox`/`select` (references), `date_picker` (date),
-  `data_table` (`--datatable`) — right after writing the views, skipping any
-  already present. Net result: apps carry only the components they use, and
-  total component installs are always ≤ the old install-everything approach.
-  New `ComponentResolver` (pure mapping logic) and `ComponentInstaller`
-  (shared install/skip helpers) modules back this. `--skip-install` opts out
-  of on-demand installs too. Relies on `ruby_ui:component` resolving
-  transitive dependencies (it does, via ruby_ui's `dependencies.yml`).
-- `date` columns now render the ruby_ui `DatePicker` (a Popover + Calendar
-  over a submittable input) instead of a native `Input(type: "date")`. The
-  generated form passes the record's date straight to `selected_date:` (the
-  component derives the input's ISO `yyyy-MM-dd` value from it) and
-  `label: nil` to avoid duplicating the form's `FormFieldLabel`. `datetime`
-  and `time` columns are unchanged (still native inputs — `DatePicker` has
-  no time component). The installer's component backfill now includes
-  `calendar` and `date_picker` to cover the new dependency.
-- The post-scaffold `Components::Base` injection now adds four more Phlex
-  helpers in addition to `lucide_icon` — `Phlex::Rails::Helpers::FormWith`,
-  `LinkTo`, `ButtonTo`, and `Request`. They're required by the
-  scaffold-generated views (`form_with`, `link_to`, `button_to`, and
-  `request.referer` for the form's Back link) but aren't included by
-  `phlex:install` / `ruby_ui:install` by default. Each line is added only
-  if absent, so re-running is safe.
-- The installer now invokes sub-generators via `system` (instead of Thor's
-  `generate` action) and aborts with a clear message on the first
-  subprocess failure. Thor's `abort_on_failure` doesn't reliably propagate
-  when the failure originates inside a nested Rails command (e.g. Bundler
-  bootstrap errors swallow the exit code). Without this, one bad step would
-  cascade into dozens of follow-up failures with the same root cause —
-  drowning the actual error in noise.
-- The installer now injects `@source "../../views/**/*.rb"` and
-  `@source "../../components/**/*.rb"` into `app/assets/tailwind/application.css`.
-  Tailwind v4's automatic content detection skips `.rb` files, so without
-  this every Phlex class name (`mx-auto`, `max-w-3xl`, `max-w-prose`, etc.)
-  would silently fail to compile — making the scaffold's centered layout
-  render as left-aligned and unstyled. Idempotent; skipped if the file
-  isn't present (non-Tailwind setups).
-- Form and Card layouts now use `w-full max-w-prose mx-auto` so they're
-  visually centered within the wrapper instead of sitting at the left edge.
-- The outer `h-dvh overflow-y-auto` wrapper on every scaffolded view
-  (index, show, new, edit) now also has `w-full`. Without it, when the
-  host layout's container uses `display: flex` (common pattern: e.g.
-  `<main class="container mx-auto flex">...</main>`), the wrapper becomes
-  a flex item and shrinks to its content width — collapsing the
-  `mx-auto max-w-3xl` inner wrapper from 768px down to ~256px and making
-  the whole page render left-aligned instead of centered. `w-full` forces
-  the flex item to fill the parent regardless of flex/block context.
-
-## [0.1.0] - 2026-05-22
 
 First public-ready release. Pre-1.0 — the API may still evolve before the
 first stable cut.
@@ -287,8 +166,6 @@ first stable cut.
 - Polymorphic references (`commentable:references{polymorphic}`) fall back
   to `Input(type: "number")` + TODO comment.
 
-### Added
-
 #### Seed command (`rails ruby_ui_scaffold:seed MODEL [COUNT]`)
 
 - Implemented as a `Rails::Command::Base` subclass at
@@ -338,6 +215,125 @@ For each column, the value comes from the first source that matches:
   (names, emails, addresses, paragraphs) is always available — no extra
   setup needed.
 
+#### Installer, flags and runtime wiring
+
+- **Lucide icons on the action buttons.** The index "New" link gets a `plus`
+  icon, the show "Edit" link a `pencil`, and the form's submit a `plus`
+  (create) / `check` (update). Each button gets `gap-2` for spacing and the
+  icon `size-4`, since ruby_ui's Button/Link don't auto-size or space SVGs.
+  Reuses the already-registered `lucide_icon` helper — no new dependency.
+- **"Back" link in the new/edit form.** The shared form now renders a `Back`
+  link next to the submit button, pointing at `request.referer` and falling
+  back to the index path when there's no referer. Requires `request` in the
+  views, so the post-scaffold injection now also adds
+  `include Phlex::Rails::Helpers::Request` to `Components::Base` (idempotent).
+- **`--skip-model` flag** for the scaffold generator — skips model/migration/
+  model-test/fixtures generation (the whole `:orm` hook) and only
+  (re)generates the controller, views, and route. Intended for re-runs
+  against an existing model: refresh the views after a template change, or
+  add `--datatable`, without Rails creating a duplicate migration or
+  clobbering the model. Implies `--force` (overwrites the regenerated files
+  and bypasses the class-collision check, which a re-run would otherwise
+  abort on). The model is never touched — put custom code there; the
+  controller/views are treated as regenerable.
+- **Installer generator** — `bin/rails g ruby_ui_scaffold:install` automates
+  the first-time setup on a fresh Rails app. Runs `phlex:install`,
+  `ruby_ui:install`, `ruby_ui:component:all`, and backfills the 12
+  components the scaffold uses but that `:component:all` currently misses
+  (`link`, `table`, `alert_dialog`, `badge`, `select`, `combobox`,
+  `checkbox`, `textarea`, `data_table`, `native_select`, `calendar`,
+  `date_picker`). Every step is idempotent — re-running only touches what's
+  missing.
+- **Automatic `ruby_ui` gem bootstrap** — when the `ruby_ui` gem isn't
+  loadable, the installer now adds
+  `gem "ruby_ui", github: "ruby-ui/ruby_ui", branch: "main", require: false`
+  to the Gemfile and runs `bundle install`, instead of aborting with manual
+  instructions. Idempotent: skips the Gemfile edit when an entry already
+  exists, and does nothing once the gem loads. Works even when the install
+  runs as a subprocess of the scaffold generator — the later sub-generator
+  steps spawn fresh subprocesses that boot with the updated bundle.
+  `phlex-rails` (a declared runtime dependency) keeps the abort-with-
+  instructions behavior. No-op when no Gemfile is present.
+- **Auto-install on scaffold** — `bin/rails g ruby_ui_scaffold ...` now
+  auto-runs the idempotent `ruby_ui_scaffold:install` when phlex/ruby_ui
+  aren't detected, so generated views work out of the box. Falls back to a
+  non-blocking warning when there's no app `bin/rails` to drive it, or when
+  opted out with the new `--skip-install` flag.
+- **`--literal` flag** for the scaffold generator — emits Phlex views using
+  [`literal`](https://literal.fun)'s `prop` macros instead of explicit
+  `def initialize` + `@ivar` assignments. Less boilerplate per view;
+  runtime type-checking included. On first use, also injects
+  `extend Literal::Properties` into `app/components/base.rb` (idempotent).
+  Combines with `--datatable` — the DataTable index gets the full typed
+  prop set (`_Any` collection, `Integer` pagination, `_Nilable(String)`
+  search/sort/direction). Controllers don't change: `render Views::*.new(...)`
+  still works since Literal generates a compatible `initialize`. `literal
+  (>= 1.0)` is now a runtime dependency.
+- `phlex-rails (>= 2.0)` is now a declared runtime dependency, so Bundler
+  pulls it in automatically. `lib/ruby_ui_scaffold.rb` requires it eagerly
+  to ensure phlex-rails' railtie fires under `Bundler.require`, which is
+  what makes `bin/rails g phlex:install` discoverable.
+
+### Changed
+
+Refinements made during 0.1.0 development, before the release was tagged.
+Where they conflict with the initial design described above, these win.
+
+- **Components are now installed on demand instead of all upfront.** The
+  installer no longer runs `ruby_ui:component:all` + a `MISSING_COMPONENTS`
+  backfill; it installs only the `ComponentResolver::BASE` shell every
+  scaffold uses (`table`, `link`, `button`, `card`, `typography`,
+  `dropdown_menu`, `alert_dialog`, `form`, `input`). Each `rails g
+  ruby_ui_scaffold` then installs just the column/flag-specific components
+  that scaffold references — `badge`/`checkbox` (boolean), `textarea`
+  (text), `combobox`/`select` (references), `date_picker` (date),
+  `data_table` (`--datatable`) — right after writing the views, skipping any
+  already present. Net result: apps carry only the components they use, and
+  total component installs are always ≤ the old install-everything approach.
+  New `ComponentResolver` (pure mapping logic) and `ComponentInstaller`
+  (shared install/skip helpers) modules back this. `--skip-install` opts out
+  of on-demand installs too. Relies on `ruby_ui:component` resolving
+  transitive dependencies (it does, via ruby_ui's `dependencies.yml`).
+- `date` columns now render the ruby_ui `DatePicker` (a Popover + Calendar
+  over a submittable input) instead of a native `Input(type: "date")`. The
+  generated form passes the record's date straight to `selected_date:` (the
+  component derives the input's ISO `yyyy-MM-dd` value from it) and
+  `label: nil` to avoid duplicating the form's `FormFieldLabel`. `datetime`
+  and `time` columns are unchanged (still native inputs — `DatePicker` has
+  no time component). The installer's component backfill now includes
+  `calendar` and `date_picker` to cover the new dependency.
+- The post-scaffold `Components::Base` injection now adds four more Phlex
+  helpers in addition to `lucide_icon` — `Phlex::Rails::Helpers::FormWith`,
+  `LinkTo`, `ButtonTo`, and `Request`. They're required by the
+  scaffold-generated views (`form_with`, `link_to`, `button_to`, and
+  `request.referer` for the form's Back link) but aren't included by
+  `phlex:install` / `ruby_ui:install` by default. Each line is added only
+  if absent, so re-running is safe.
+- The installer now invokes sub-generators via `system` (instead of Thor's
+  `generate` action) and aborts with a clear message on the first
+  subprocess failure. Thor's `abort_on_failure` doesn't reliably propagate
+  when the failure originates inside a nested Rails command (e.g. Bundler
+  bootstrap errors swallow the exit code). Without this, one bad step would
+  cascade into dozens of follow-up failures with the same root cause —
+  drowning the actual error in noise.
+- The installer now injects `@source "../../views/**/*.rb"` and
+  `@source "../../components/**/*.rb"` into `app/assets/tailwind/application.css`.
+  Tailwind v4's automatic content detection skips `.rb` files, so without
+  this every Phlex class name (`mx-auto`, `max-w-3xl`, `max-w-prose`, etc.)
+  would silently fail to compile — making the scaffold's centered layout
+  render as left-aligned and unstyled. Idempotent; skipped if the file
+  isn't present (non-Tailwind setups).
+- Form and Card layouts now use `w-full max-w-prose mx-auto` so they're
+  visually centered within the wrapper instead of sitting at the left edge.
+- The outer `h-dvh overflow-y-auto` wrapper on every scaffolded view
+  (index, show, new, edit) now also has `w-full`. Without it, when the
+  host layout's container uses `display: flex` (common pattern: e.g.
+  `<main class="container mx-auto flex">...</main>`), the wrapper becomes
+  a flex item and shrinks to its content width — collapsing the
+  `mx-auto max-w-3xl` inner wrapper from 768px down to ~256px and making
+  the whole page render left-aligned instead of centered. `w-full` forces
+  the flex item to fill the parent regardless of flex/block context.
+
 ### Dependencies
 
 - Runtime: `railties >= 7.1`, `faker >= 2.0`, `lucide-rails >= 0.7`
@@ -371,6 +367,8 @@ if your `Components::Base` already declares it.
   `Rails::Generators.options[:ruby_ui_scaffold][:template_engine] =
   "ruby_ui_scaffold"` **before** loading generator classes, because
   `class_option` defaults are frozen at class-definition time.
+  (Superseded in 0.1.1: loading generator classes in the railtie froze
+  Rails' `:orm` default too early — the railtie now only sets options.)
 - The entry generator's namespace is overridden to flat `"ruby_ui_scaffold"`
   (not `"ruby_ui_scaffold:ruby_ui_scaffold"`) to avoid `find_by_namespace`
   shadowing of the sub-generators when hooks fire.
