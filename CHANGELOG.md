@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-11-12
+
 ### Fixed
 
 - **`rails g ruby_ui_scaffold` generated no model or migration** (and having
@@ -373,5 +375,6 @@ if your `Components::Base` already declares it.
   (not `"ruby_ui_scaffold:ruby_ui_scaffold"`) to avoid `find_by_namespace`
   shadowing of the sub-generators when hooks fire.
 
-[Unreleased]: https://github.com/jacksonpires/ruby_ui_scaffold/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/jacksonpires/ruby_ui_scaffold/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/jacksonpires/ruby_ui_scaffold/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/jacksonpires/ruby_ui_scaffold/releases/tag/v0.1.0
