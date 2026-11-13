@@ -3,6 +3,17 @@
 require "rails/generators"
 require "rails/generators/rails/scaffold/scaffold_generator"
 
+# Load our sub-generators eagerly, together with this entry point. Rails'
+# hook lookup (Rails::Command::Behavior#lookup) requires only the FIRST
+# existing candidate file: for the views hook (`find_by_namespace(
+# "ruby_ui_scaffold", "ruby_ui_scaffold", "scaffold")`) that is THIS file,
+# so `scaffold/scaffold_generator.rb` would never be loaded and the hook
+# reports "ruby_ui_scaffold [not found]". This file itself is loaded lazily
+# by the namespace lookup — after `Rails::Generators.configure!` — so these
+# requires can't freeze option defaults too early (see Railtie).
+require "generators/ruby_ui_scaffold/scaffold_controller/scaffold_controller_generator"
+require "generators/ruby_ui_scaffold/scaffold/scaffold_generator"
+
 module RubyUiScaffold
   module Generators
     # Entry point: `rails g ruby_ui_scaffold User name:string ...`

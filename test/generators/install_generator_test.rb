@@ -190,7 +190,8 @@ class InstallGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     gemfile = File.read(File.join(destination_root, "Gemfile"))
-    assert_match(%r{gem ["']ruby_ui["'].*github: ["']ruby-ui/ruby_ui["']}, gemfile)
+    assert_match(%r{gem ["']ruby_ui["'], ["']~> 1\.6["'], require: false}, gemfile)
+    refute_match(/github:/, gemfile, "ruby_ui is on RubyGems — no GitHub source")
     assert Thread.current[:bundle_installed], "Expected `bundle install` to run"
     # After bootstrapping the gem, the installer still proceeds to ruby_ui:install
     assert_invoked "ruby_ui:install"

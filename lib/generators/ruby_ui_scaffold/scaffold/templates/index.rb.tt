@@ -43,7 +43,7 @@ class Views::<%= controller_class_name %>::Index < Views::Base
 <% attributes.reject { |a| a.respond_to?(:password_digest?) && a.password_digest? }.each do |attribute| -%>
 <% if attribute.type == :boolean -%>
                 TableCell do
-                  Badge(variant: <%= singular_table_name %>.<%= attribute.column_name %>? ? "success" : "outline") do
+                  Badge(variant: <%= singular_table_name %>.<%= attribute.column_name %>? ? :success : :outline) do
                     <%= singular_table_name %>.<%= attribute.column_name %>? ? "Yes" : "No"
                   end
                 end

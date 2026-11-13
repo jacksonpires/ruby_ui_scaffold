@@ -145,7 +145,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/DataTableSortHead\(/, c)
       assert_match(/column_key: "name"/, c)
       # Boolean rendered as Badge in body
-      assert_match(/Badge\(variant: user\.admin\? \? "success" : "outline"\)/, c)
+      # Symbol variants — RubyUI::Badge::COLORS is symbol-keyed (no to_sym)
+      assert_match(/Badge\(variant: user\.admin\? \? :success : :outline\)/, c)
       # Pagination
       assert_match(/DataTablePaginationBar do/, c)
       assert_match(/DataTablePagination\(/, c)
@@ -396,7 +397,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/Card\(class: "[^"]*max-w-prose[^"]*mx-auto/, c)
       assert_match(/Text\(weight: "medium"\) { "Name:" }/, c)
       # Boolean as Badge in show too
-      assert_match(/Badge\(variant: @user\.admin\?/, c)
+      assert_match(/Badge\(variant: @user\.admin\? \? :success : :outline\)/, c)
       # Edit link carries a lucide `pencil` icon
       assert_match(/Link\(href: edit_user_path\(@user\), variant: "outline", class: "gap-2"\) do/, c)
       assert_match(/lucide_icon\("pencil", class: "size-4"\)/, c)

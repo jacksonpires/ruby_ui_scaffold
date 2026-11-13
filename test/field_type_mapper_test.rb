@@ -27,9 +27,16 @@ class FieldTypeMapperTest < Minitest::Test
     assert_equal %{Input(type: "number", id: "user_age", name: "user[age]", value: @user.age, step: 1)}, out
   end
 
-  def test_decimal_renders_number_step_any
+  # Stringified: Phlex 2 rejects BigDecimal attribute values (Phlex::ArgumentError).
+  def test_decimal_renders_number_step_any_with_stringified_value
     out = render("price", "decimal")
-    assert_equal %{Input(type: "number", id: "user_price", name: "user[price]", value: @user.price, step: "any")}, out
+    assert_equal %{Input(type: "number", id: "user_price", name: "user[price]", value: @user.price&.to_s, step: "any")}, out
+  end
+
+  # Float is a valid Phlex attribute value as-is — no stringification needed.
+  def test_float_renders_number_step_any
+    out = render("ratio", "float")
+    assert_equal %{Input(type: "number", id: "user_ratio", name: "user[ratio]", value: @user.ratio, step: "any")}, out
   end
 
   def test_boolean_renders_hidden_plus_checkbox
