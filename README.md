@@ -1,5 +1,7 @@
 # ruby_ui_scaffold
 
+[![CI](https://github.com/jacksonpires/ruby_ui_scaffold/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jacksonpires/ruby_ui_scaffold/actions/workflows/ci.yml)
+
 Rails scaffold generator that outputs **Phlex views built with [ruby_ui](https://github.com/ruby-ui/ruby_ui) components**, plus a smart `seed` command to populate models with fake data.
 
 Drop-in alternative to `rails g scaffold` — generates model, migration, controller, routes, tests, and Phlex view classes wired to ruby_ui components.
