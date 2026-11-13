@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Ruby × Rails compatibility matrix** in the README and a GitHub Actions CI
+  workflow that runs the test suite on Ruby 3.2, 3.3, 3.4 and 4.0 against
+  Rails 7.1, 7.2, 8.0 and 8.1 (per-version Gemfiles under `gemfiles/`).
+
+### Changed
+
+- **Minimum Ruby raised to 3.2.** Phlex 2.x (required by `phlex-rails >= 2.0`)
+  already needs Ruby 3.2+, so the previous `>= 3.1` couldn't be installed on 3.1.
+
 ## [0.1.0] - 2026-06-09
 
 ### Added

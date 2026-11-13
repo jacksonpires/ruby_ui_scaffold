@@ -8,8 +8,29 @@ Drop-in alternative to `rails g scaffold` — generates model, migration, contro
 
 ## Requirements
 
+- Ruby 3.2+
 - Rails 7.1+
 - Tailwind CSS (any Rails Tailwind setup — `tailwindcss-rails` is fine)
+
+### Compatibility matrix
+
+The full test suite runs in CI against every combination below.
+
+| Ruby \ Rails | 7.1 | 7.2 | 8.0 | 8.1 |
+|--------------|:---:|:---:|:---:|:---:|
+| **4.0**      | ✅  | ✅  | ✅  | ✅  |
+| **3.4**      | ✅  | ✅  | ✅  | ✅  |
+| **3.3**      | ✅  | ✅  | ✅  | ✅  |
+| **3.2**      | ✅  | ✅  | ✅  | ✅  |
+
+Last verified with Ruby 4.0.9 and Rails 8.1.4.1. Ruby 3.1 isn't supported because Phlex 2.x (required by `phlex-rails >= 2.0`) needs Ruby 3.2+.
+
+To run the suite against a specific Rails version locally:
+
+```bash
+BUNDLE_GEMFILE=gemfiles/rails_8.1.gemfile bundle install
+BUNDLE_GEMFILE=gemfiles/rails_8.1.gemfile bundle exec rake test
+```
 
 ## Disclaimer
 
