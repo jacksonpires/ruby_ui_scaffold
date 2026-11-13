@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`ruby_ui_scaffold` is a Ruby gem (Rails plugin) that provides `rails g ruby_ui_scaffold` — a drop-in replacement for `rails g scaffold` that emits **Phlex view classes wired to [ruby_ui](https://github.com/ruby-ui/ruby_ui) components** instead of ERB. It also ships a `rails ruby_ui_scaffold:seed` command that populates models with realistic fake data via Faker. Ruby >= 3.1, Rails >= 7.1.
+`ruby_ui_scaffold` is a Ruby gem (Rails plugin) that provides `rails g ruby_ui_scaffold` — a drop-in replacement for `rails g scaffold` that emits **Phlex view classes wired to [ruby_ui](https://github.com/ruby-ui/ruby_ui) components** instead of ERB. It also ships a `rails ruby_ui_scaffold:seed` command that populates models with realistic fake data via Faker. Ruby >= 3.2, Rails >= 7.1.
 
 This repo is the gem source, not a host Rails app. There is no `bin/rails` here; the generator/command behavior is exercised through Rails' generator test harness against a temp destination.
 
