@@ -21,6 +21,11 @@ module RubyUiScaffold
     class InstallGenerator < ::Rails::Generators::Base
       include ::RubyUiScaffold::ComponentInstaller
 
+      # Version constraint for the `ruby_ui` Gemfile entry the installer adds.
+      # ruby_ui is published on RubyGems; 1.6 is the oldest release this gem's
+      # generated views and component set were verified against.
+      RUBY_UI_REQUIREMENT = "~> 1.6"
+
       desc "Install the ruby_ui gem, phlex, ruby_ui, and the base scaffold components."
 
       def check_phlex_rails_gem
@@ -37,9 +42,9 @@ module RubyUiScaffold
       end
 
       # Ensure the `ruby_ui` gem is available. Unlike `phlex-rails` (a declared
-      # runtime dependency of this gem), `ruby_ui` is distributed via GitHub and
-      # can't be a gemspec dependency — so on a fresh app it usually isn't
-      # bundled yet. Rather than abort, add it to the Gemfile and `bundle
+      # runtime dependency of this gem), `ruby_ui` is left to the host app's
+      # Gemfile (so the app controls its version and group, as ruby_ui's own
+      # docs recommend) — so on a fresh app it usually isn't bundled yet. Rather than abort, add it to the Gemfile and `bundle
       # install` automatically, then let the rest of the installer proceed:
       # the subsequent `ruby_ui:install` / `ruby_ui:component` steps run in
       # subprocesses (via run_rails_generator!) that boot with the freshly
@@ -56,7 +61,7 @@ module RubyUiScaffold
           say "\n  → ruby_ui is in the Gemfile but not bundled yet — running `bundle install`.", :cyan
         else
           say "\n  → ruby_ui gem not found — adding it to your Gemfile.", :cyan
-          gem "ruby_ui", github: "ruby-ui/ruby_ui", branch: "main", require: false
+          gem "ruby_ui", RUBY_UI_REQUIREMENT, require: false
         end
 
         run_bundle_install!
@@ -137,7 +142,7 @@ module RubyUiScaffold
       def abort_ruby_ui_unavailable!
         say "\n  ❌  The `ruby_ui` gem isn't available and no Gemfile was found to add it to.", :red
         say "      Add it to your Gemfile, then bundle and retry:\n", :red
-        say %(          gem "ruby_ui", github: "ruby-ui/ruby_ui", branch: "main", require: false), :cyan
+        say %(          gem "ruby_ui", "#{RUBY_UI_REQUIREMENT}", require: false), :cyan
         say "          bundle install"
         say "          bin/rails g ruby_ui_scaffold:install\n", :cyan
         exit(1)

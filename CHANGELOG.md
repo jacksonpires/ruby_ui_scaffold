@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **`rails g ruby_ui_scaffold` generated no model or migration** (and having
+  the gem in the Gemfile broke plain `rails g model` too). The Railtie's
+  `generators` block required the generator classes, which loaded Rails'
+  `ModelGenerator` before `Rails::Generators.configure!` and froze its `:orm`
+  hook as `false`. The Railtie now only sets option defaults; generator
+  classes load lazily, after configuration.
+- **Edit form crashed for `decimal` columns** with
+  `Phlex::ArgumentError (Invalid attribute value for value: 0.58206e3)` —
+  Phlex 2 rejects `BigDecimal` attribute values. The input value is now
+  stringified (`@record.price&.to_s` → `"582.06"`).
+- **Boolean `Badge` rendered without colors.** Templates passed the variant
+  as a string (`"success"`), but `RubyUI::Badge::COLORS` is symbol-keyed and
+  Badge doesn't `to_sym` it. Variants are now symbols (`:success` / `:outline`).
+
+### Changed
+
+- **`ruby_ui` now comes from RubyGems.** The installer adds
+  `gem "ruby_ui", "~> 1.6", require: false` instead of tracking the GitHub
+  `main` branch. Verified end-to-end against ruby_ui 1.6.0. Existing GitHub
+  entries in a Gemfile are still detected and left alone.
+
 ### Added
 
 - **Ruby × Rails compatibility matrix** in the README and a GitHub Actions CI

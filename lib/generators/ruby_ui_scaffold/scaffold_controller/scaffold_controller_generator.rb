@@ -3,6 +3,10 @@
 require "rails/generators"
 require "rails/generators/rails/scaffold_controller/scaffold_controller_generator"
 require "ruby_ui_scaffold/attribute_helpers"
+# Our template_engine hook target. Required directly so a standalone
+# `rails g ruby_ui_scaffold:scaffold_controller` resolves it too (see the
+# note in ruby_ui_scaffold_generator.rb on Rails' first-match lookup).
+require "generators/ruby_ui_scaffold/scaffold/scaffold_generator"
 
 module RubyUiScaffold
   module Generators

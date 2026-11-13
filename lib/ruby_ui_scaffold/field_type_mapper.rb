@@ -38,7 +38,10 @@ module RubyUiScaffold
       when :text                    then textarea
       when :boolean                 then checkbox
       when :integer                 then input("number", step: 1)
-      when :float, :decimal         then input("number", step: "any")
+      when :float                   then input("number", step: "any")
+      # Phlex 2 rejects BigDecimal attribute values (Phlex::ArgumentError), so
+      # stringify — ActiveSupport makes BigDecimal#to_s plain notation ("582.06").
+      when :decimal                 then input("number", step: "any", value_suffix: "&.to_s")
       when :date                    then date_picker
       when :time                    then input("time", value_suffix: %q{&.strftime("%H:%M")})
       when :datetime, :timestamp    then input("datetime-local", value_suffix: %q{&.strftime("%Y-%m-%dT%H:%M")})

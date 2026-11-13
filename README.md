@@ -48,7 +48,7 @@ On a fresh Rails app, add **both** gems to your `Gemfile` — `ruby_ui` (the com
 
 ```ruby
 # Gemfile
-gem "ruby_ui", github: "ruby-ui/ruby_ui", branch: "main", require: false
+gem "ruby_ui", "~> 1.6", require: false
 
 group :development do
   gem "ruby_ui_scaffold"
@@ -74,7 +74,7 @@ That's it. The installer wires up phlex, ruby_ui, and the base scaffold componen
 <details>
 <summary>What the installer does</summary>
 
-0. **ruby_ui gem bootstrap** — if `ruby_ui` isn't loadable, adds `gem "ruby_ui", github: "ruby-ui/ruby_ui", branch: "main", require: false` to the Gemfile (unless an entry already exists) and runs `bundle install`. Skipped entirely once the gem loads.
+0. **ruby_ui gem bootstrap** — if `ruby_ui` isn't loadable, adds `gem "ruby_ui", "~> 1.6", require: false` (from RubyGems) to the Gemfile (unless an entry already exists) and runs `bundle install`. Skipped entirely once the gem loads.
 1. **`phlex:install`** — creates `app/views/base.rb` (`Views::Base`), `app/components/base.rb` (`Components::Base`), and `config/initializers/phlex.rb` (wires the `Views::` autoloader). Skipped if `app/views/base.rb` already exists.
 2. **`ruby_ui:install`** — mixes `include RubyUI` into `Components::Base`, adds `config/initializers/ruby_ui.rb`, and the Tailwind preset. Skipped if `Components::Base` already includes RubyUI.
 3. **Base components** — installs the components every scaffold's shell uses regardless of columns/flags: `table`, `link`, `button`, `card`, `typography`, `dropdown_menu`, `alert_dialog`, `form`, `input`. Each is skipped if already present. The installer does **not** run `ruby_ui:component:all` — column/flag-specific components are installed on demand (see below).
@@ -454,7 +454,8 @@ Controllers render via the fully-qualified constant — `render ::Views::Buddies
 | `string`                  | `Input(type: "text")`                                                |
 | `text`                    | `Textarea(rows: 4)`                                                  |
 | `integer`                 | `Input(type: "number", step: 1)`                                     |
-| `float`, `decimal`        | `Input(type: "number", step: "any")`                                 |
+| `float`                   | `Input(type: "number", step: "any")`                                 |
+| `decimal`                 | `Input(type: "number", step: "any")` — value stringified (`&.to_s`)  |
 | `boolean`                 | `Checkbox` + hidden `"0"`                                            |
 | `date`                    | `DatePicker` (ruby_ui — Popover + Calendar over a submittable input) |
 | `time`                    | `Input(type: "time")`                                                |

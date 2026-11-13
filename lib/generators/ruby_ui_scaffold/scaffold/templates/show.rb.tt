@@ -35,7 +35,7 @@ class Views::<%= controller_class_name %>::Show < Views::Base
         div do
           Text(weight: "medium") { "<%= attribute.human_name %>:" }
 <% if attribute.type == :boolean -%>
-          Badge(variant: @<%= singular_table_name %>.<%= attribute.column_name %>? ? "success" : "outline") do
+          Badge(variant: @<%= singular_table_name %>.<%= attribute.column_name %>? ? :success : :outline) do
             @<%= singular_table_name %>.<%= attribute.column_name %>? ? "Yes" : "No"
           end
 <% elsif reference_associations.include?(attribute.name.to_sym) -%>
