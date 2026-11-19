@@ -25,7 +25,7 @@ The full test suite runs in CI against every combination below.
 | **3.3**      | ✅  | ✅  | ✅  | ✅  |
 | **3.2**      | ✅  | ✅  | ✅  | ✅  |
 
-Last verified with Ruby 4.0.9 and Rails 8.1.4.1. Ruby 3.1 isn't supported because Phlex 2.x (required by `phlex-rails >= 2.0`) needs Ruby 3.2+.
+Last verified with Ruby 4.0.10 and Rails 8.1.4.1. Ruby 3.1 isn't supported because Phlex 2.x (required by `phlex-rails >= 2.0`) needs Ruby 3.2+.
 
 To run the suite against a specific Rails version locally:
 
